@@ -1,0 +1,29 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Virtual environment
+venv/
+ENV/
+.env
+.env.*
+
+# VS Code settings
+.vscode/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+
+# Database / secrets
+*.sqlite3
+*.db
+
+# Postman collections (optional, if you want to keep them out of git)
+# echoforms.postman_collection.json 
