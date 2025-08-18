@@ -24,6 +24,7 @@ ENV/
 # Database / secrets
 *.sqlite3
 *.db
+google_oauth.json
 
 # Postman collections (optional, if you want to keep them out of git)
 # echoforms.postman_collection.json 
