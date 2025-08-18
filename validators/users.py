@@ -1,5 +1,12 @@
-from fastapi import HTTPException
+from fastapi import HTTPException, Depends
 from models.users import User
+from jose import JWTError, jwt
+import os
+from datetime import datetime, timedelta
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlalchemy.orm import Session
+from db import get_db
+
 
 def validate_user_create(data, db):
     if not data.name or not data.name.strip():
