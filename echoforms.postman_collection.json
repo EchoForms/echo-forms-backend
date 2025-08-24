@@ -4,6 +4,12 @@
         "name": "EchoForms Backend API",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
+    "variable": [
+        {
+            "key": "echoformsBaseURL",
+            "value": "http://localhost:8000"
+        }
+    ],
     "item": [
         {
             "name": "Health Check",
@@ -11,7 +17,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                    "raw": "http://localhost:8000/health",
+                    "raw": "{{echoformsBaseURL}}/health",
                     "protocol": "http",
                     "host": ["localhost"],
                     "port": "8000",
@@ -34,7 +40,7 @@
                             "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
                         },
                         "url": {
-                            "raw": "http://localhost:8000/users/",
+                            "raw": "{{echoformsBaseURL}}/users/",
                             "protocol": "http",
                             "host": ["localhost"],
                             "port": "8000",
@@ -54,7 +60,7 @@
                             "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\"\n}"
                         },
                         "url": {
-                            "raw": "http://localhost:8000/users/login",
+                            "raw": "{{echoformsBaseURL}}/users/login",
                             "protocol": "http",
                             "host": ["localhost"],
                             "port": "8000",
@@ -80,7 +86,7 @@
                             "raw": "{\n  \"title\": \"Customer Feedback\",\n  \"description\": \"Quarterly survey\",\n  \"language\": \"English\",\n  \"status\": \"draft\",\n  \"is_public\": false\n}"
                         },
                         "url": {
-                            "raw": "http://localhost:8000/forms/",
+                            "raw": "{{echoformsBaseURL}}/forms/",
                             "protocol": "http",
                             "host": ["localhost"],
                             "port": "8000",
@@ -96,7 +102,7 @@
                             {"key": "Authorization", "value": "Bearer <token>"}
                         ],
                         "url": {
-                            "raw": "http://localhost:8000/forms/",
+                            "raw": "{{echoformsBaseURL}}/forms/",
                             "protocol": "http",
                             "host": ["localhost"],
                             "port": "8000",
@@ -112,7 +118,7 @@
                             {"key": "Authorization", "value": "Bearer <token>"}
                         ],
                         "url": {
-                            "raw": "http://localhost:8000/forms/1",
+                            "raw": "{{echoformsBaseURL}}/forms/1",
                             "protocol": "http",
                             "host": ["localhost"],
                             "port": "8000",
@@ -133,7 +139,7 @@
                             "raw": "{\n  \"title\": \"Updated Title\"\n}"
                         },
                         "url": {
-                            "raw": "http://localhost:8000/forms/1",
+                            "raw": "{{echoformsBaseURL}}/forms/1",
                             "protocol": "http",
                             "host": ["localhost"],
                             "port": "8000",
@@ -149,11 +155,185 @@
                             {"key": "Authorization", "value": "Bearer <token>"}
                         ],
                         "url": {
-                            "raw": "http://localhost:8000/forms/1",
+                            "raw": "{{echoformsBaseURL}}/forms/1",
                             "protocol": "http",
                             "host": ["localhost"],
                             "port": "8000",
                             "path": ["forms", "1"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "FormResponse",
+            "item": [
+                {
+                    "name": "Create FormResponse",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {"key": "Content-Type", "value": "application/json"}
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"formId\": 1,\n  \"status\": \"in_progress\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{echoformsBaseURL}}/form-responses/",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8000",
+                            "path": ["form-responses", ""]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All FormResponses",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{echoformsBaseURL}}/form-responses/",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8000",
+                            "path": ["form-responses", ""]
+                        }
+                    }
+                },
+                {
+                    "name": "Get FormResponse by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{echoformsBaseURL}}/form-responses/1",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8000",
+                            "path": ["form-responses", "1"]
+                        }
+                    }
+                },
+                {
+                    "name": "Update FormResponse",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {"key": "Content-Type", "value": "application/json"}
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"status\": \"submitted\",\n  \"submitTimestamp\": \"2024-01-01T12:00:00Z\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{echoformsBaseURL}}/form-responses/1",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8000",
+                            "path": ["form-responses", "1"]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete FormResponse",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{echoformsBaseURL}}/form-responses/1",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8000",
+                            "path": ["form-responses", "1"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "FormResponseField",
+            "item": [
+                {
+                    "name": "Create FormResponseField",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {"key": "Content-Type", "value": "application/json"}
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"formResponseId\": 1,\n  \"formfeildId\": 1,\n  \"responseText\": \"Sample answer\",\n  \"voiceFileLink\": \"http://example.com/voice.mp3\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{echoformsBaseURL}}/form-response-fields/",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8000",
+                            "path": ["form-response-fields", ""]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All FormResponseFields",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{echoformsBaseURL}}/form-response-fields/",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8000",
+                            "path": ["form-response-fields", ""]
+                        }
+                    }
+                },
+                {
+                    "name": "Get FormResponseField by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{echoformsBaseURL}}/form-response-fields/1",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8000",
+                            "path": ["form-response-fields", "1"]
+                        }
+                    }
+                },
+                {
+                    "name": "Update FormResponseField",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {"key": "Content-Type", "value": "application/json"}
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"responseText\": \"Updated answer\",\n  \"voiceFileLink\": \"http://example.com/voice2.mp3\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{echoformsBaseURL}}/form-response-fields/1",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8000",
+                            "path": ["form-response-fields", "1"]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete FormResponseField",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{echoformsBaseURL}}/form-response-fields/1",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8000",
+                            "path": ["form-response-fields", "1"]
                         }
                     }
                 }
