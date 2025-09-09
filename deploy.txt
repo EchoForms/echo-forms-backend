@@ -1,0 +1,12 @@
+
+# Backend 
+1. run migrations 
+2. add secrets 
+3. add requirements correctly in requirements.txt 
+4. deploy latest commit 
+
+# Frontend 
+1. npm run build 
+2. fix package-lock.json by reinstalling 
+3. add secrets 
+4. deploy latest commit 
