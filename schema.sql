@@ -80,6 +80,7 @@ CREATE TABLE "public"."form_responses" (
     "updated_at" timestamp NOT NULL DEFAULT now(),
     "status" varchar(32) NOT NULL DEFAULT 'in_progress'::character varying,
     "submitTimestamp" timestamp,
+    "language" varchar(10) DEFAULT 'en',
     "user_id" int4,
     CONSTRAINT "fk_form_responses_user_id" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id"),
     CONSTRAINT "form_responses_formId_fkey" FOREIGN KEY ("formId") REFERENCES "public"."forms"("id"),
@@ -102,6 +103,10 @@ CREATE TABLE "public"."form_response_fields" (
     "responseText" text,
     "voiceFileLink" varchar(255),
     "response_time" float8,
+    "transcribed_text" text,
+    "translated_text" text,
+    "categories" json,
+    "sentiment" varchar(20) DEFAULT 'neutral',
     "user_id" int4,
     CONSTRAINT "form_response_fields_formfeildId_fkey" FOREIGN KEY ("formfeildId") REFERENCES "public"."form_fields"("id") ON DELETE CASCADE,
     CONSTRAINT "form_response_fields_formResponseId_fkey" FOREIGN KEY ("formResponseId") REFERENCES "public"."form_responses"("responseId") ON DELETE CASCADE,
@@ -110,4 +115,26 @@ CREATE TABLE "public"."form_response_fields" (
     PRIMARY KEY ("responsefieldId")
 );
 
+-- Indices
+CREATE INDEX "ix_form_response_fields_responsefieldId" ON public.form_response_fields USING btree ("responsefieldId");
+
+-- Sequence and defined type
+CREATE SEQUENCE IF NOT EXISTS "form_analytics_analyticsId_seq";
+
+-- Table Definition
+CREATE TABLE "public"."form_analytics" (
+    "analyticsId" int4 NOT NULL DEFAULT nextval('"form_analytics_analyticsId_seq"'::regclass),
+    "formId" int4 NOT NULL,
+    "response_categories" json,
+    "total_responses" int4 DEFAULT 0,
+    "create_timestamp" timestamp DEFAULT now(),
+    "update_timestamp" timestamp DEFAULT now(),
+    "status" varchar(20) NOT NULL DEFAULT 'active'::character varying,
+    CONSTRAINT "form_analytics_formId_fkey" FOREIGN KEY ("formId") REFERENCES "public"."forms"("id") ON DELETE CASCADE,
+    PRIMARY KEY ("analyticsId")
+);
+
+-- Indices
+CREATE INDEX "ix_form_analytics_analyticsId" ON public.form_analytics USING btree ("analyticsId");
+CREATE INDEX "ix_form_analytics_formId" ON public.form_analytics USING btree ("formId");
 

@@ -179,6 +179,37 @@ def get_form_results(form_id: int, db: Session = Depends(get_db), current_user: 
                 "percentage": round((responses_at_question / completed_count * 100), 2) if completed_count > 0 else 0
             })
     
+    # Get analytics data
+    from models.form_analytics import FormAnalytics
+    analytics = db.query(FormAnalytics).filter(
+        FormAnalytics.formId == form_id,
+        FormAnalytics.status == "active"
+    ).first()
+    
+    # Also try without status filter in case status is not set
+    if not analytics:
+        analytics = db.query(FormAnalytics).filter(
+            FormAnalytics.formId == form_id
+        ).first()
+    
+    # Prepare analytics data
+    analytics_data = {
+        "categories": [],
+        "sentiment_distribution": {"positive": 0, "negative": 0, "neutral": 0},
+        "total_categories": 0
+    }
+    
+    if analytics and analytics.response_categories:
+        analytics_data["categories"] = analytics.response_categories
+        analytics_data["total_categories"] = len(analytics.response_categories)
+        
+        # Calculate sentiment distribution based on response counts
+        for category in analytics.response_categories:
+            sentiment = category.get("sentiment", "neutral")
+            response_count = category.get("response_count", 0)
+            if sentiment in analytics_data["sentiment_distribution"]:
+                analytics_data["sentiment_distribution"][sentiment] += response_count
+
     return {
         "form_id": form.id,
         "form_unique_id": form.form_unique_id,
@@ -191,7 +222,8 @@ def get_form_results(form_id: int, db: Session = Depends(get_db), current_user: 
         "avg_response_time": avg_response_time,
         "completion_rate": completion_rate,
         "question_breakdown": question_breakdown,
-        "completion_funnel": completion_funnel
+        "completion_funnel": completion_funnel,
+        "analytics": analytics_data
     }
 
 @router.get("/{form_id}/responses", response_model=None)
@@ -240,7 +272,7 @@ def get_form_responses_paginated(
         FormResponseField.formResponseId.in_(response_ids)
     ).all()
     
-        # Group responses by user/response
+    # Group responses by user/response
     formatted_responses = []
     for response in responses:
         user_response_fields = [f for f in response_fields if f.formResponseId == response.responseId]
@@ -258,15 +290,20 @@ def get_form_responses_paginated(
                 "response_id": response.responseId,
                 "user_id": f"User #{response.responseId}",
                 "start_timestamp": response.created_at,
+                "language": response.language or "en",
                 "responses": [
                     {
                         "question_id": field.formfeildId,
                         "question_text": next((f.question for f in form.fields if f.id == field.formfeildId), "Unknown Question"),
                         "transcript": field.responseText or "No text response",
+                        "transcribed_text": field.transcribed_text or "No AI transcription available",
+                        "translated_text": field.translated_text,
+                        "categories": field.categories or [],
                         "response_time": field.response_time,  # Raw response time for duration calculation
                         "duration": f"{field.response_time:.1f}s" if field.response_time else "0s",
                         "voice_file": generate_download_url(field.voiceFileLink, auth_token) if field.voiceFileLink else None,
-                        "sentiment": "neutral"  # Placeholder for future sentiment analysis
+                        "sentiment": getattr(field, 'sentiment', 'neutral') or "neutral",
+                        "language": getattr(field, 'language', 'en') or "en"
                     }
                     for field in user_response_fields
                 ]

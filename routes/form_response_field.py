@@ -3,9 +3,10 @@ from sqlalchemy.orm import Session
 from models.form_response_field import FormResponseField
 from models.form_response import FormResponse
 from schemas.form_response_field import FormResponseFieldCreate, FormResponseFieldUpdate, FormResponseFieldOut
-from db import get_db
+from db import get_db, SessionLocal
 from datetime import datetime
-from utils.b2 import upload_file_to_b2, get_download_authorization, generate_download_url
+from utils.b2 import get_download_authorization, generate_download_url
+from utils.background_tasks import start_background_processing
 from typing import Optional
 from models.form import Form
 
@@ -31,7 +32,6 @@ async def create_form_response_field(
     if not form:
         raise HTTPException(status_code=404, detail="Form not found")
 
-    voiceFileLink = None
     form_response_obj = db.query(FormResponse).filter(FormResponse.responseId == formResponseId).first()
 
     if not form_response_obj:
@@ -40,31 +40,61 @@ async def create_form_response_field(
     if form_response_obj.status == "completed":
         raise HTTPException(status_code=400, detail="FormResponse is already completed")
 
+    # Prepare file data for background processing
+    file_content = None
+    file_name = None
+    file_content_type = None
+    
     if file:
         user_id = form.user_id if form else "unknown"
         file_ext = file.filename.split('.')[-1]
         file_name = f"{user_id}/{formId}/responses/{formResponseId}/{question_number}.{file_ext}"
-        voiceFileLink = upload_file_to_b2(await file.read(), file_name, file.content_type)
+        file_content = await file.read()
+        file_content_type = file.content_type
 
+    # Create the initial database record immediately (without processed data)
     new_field = FormResponseField(
         formResponseId=formResponseId,
         formId=formId,
         formfeildId=formfeildId,
         responseText=responseText,
-        voiceFileLink=voiceFileLink,
+        voiceFileLink=None,  # Will be updated by background task
         response_time=responseTime,
-        user_id=form.user_id  # Add user_id from the form
+        transcribed_text=None,  # Will be updated by background task
+        translated_text=None,  # Will be updated by background task
+        categories=None,  # Will be updated by background task
+        sentiment="neutral",  # Will be updated by background task
+        language="en",  # Will be updated by background task
+        user_id=form.user_id
     )
     db.add(new_field)
 
+    # Mark form as completed if this is the last question
     if isLastQuestion:
-        if not form_response_obj: # Re-fetch if not already fetched for file naming
-            form_response_obj = db.query(FormResponse).filter(FormResponse.responseId == formResponseId).first()
-        if form_response_obj:
-            form_response_obj.status = "completed"
-            form_response_obj.submitTimestamp = datetime.utcnow()
+        form_response_obj.status = "completed"
+        form_response_obj.submitTimestamp = datetime.utcnow()
+
+    # Commit the initial record immediately
     db.commit()
     db.refresh(new_field)
+
+    # Start background processing for heavy operations
+    if file_content or responseText:
+        start_background_processing(
+            formResponseId=formResponseId,
+            formId=formId,
+            formfeildId=formfeildId,
+            responseText=responseText,
+            file_content=file_content,
+            file_name=file_name,
+            file_content_type=file_content_type,
+            question_number=question_number,
+            responseTime=responseTime,
+            user_id=form.user_id,
+            db_session_factory=SessionLocal
+        )
+
+    # Return the initial record immediately (without processed data)
     return new_field
 
 @router.get("/", response_model=list[FormResponseFieldOut])

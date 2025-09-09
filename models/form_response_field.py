@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, Float, JSON
 from sqlalchemy.orm import relationship
 from . import Base
 
@@ -13,6 +13,11 @@ class FormResponseField(Base):
     responseText = Column(Text, nullable=True)
     voiceFileLink = Column(String(255), nullable=True)
     response_time = Column(Float, nullable=True)
+    transcribed_text = Column(Text, nullable=True)
+    translated_text = Column(Text, nullable=True)
+    categories = Column(JSON, nullable=True)
+    sentiment = Column(String(20), nullable=True, default="neutral")
+    language = Column(String(10), nullable=True, default="en")
 
     form_response = relationship("FormResponse")
     form_field = relationship("FormField")

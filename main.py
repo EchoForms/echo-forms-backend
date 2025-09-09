@@ -6,6 +6,7 @@ from routes.users import router as users_router
 from routes.form import router as form_router
 from routes.form_response import router as form_response_router
 from routes.form_response_field import router as form_response_field_router
+from routes.form_analytics import router as form_analytics_router
 from db import engine
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
@@ -32,6 +33,7 @@ app.include_router(users_router)
 app.include_router(form_router)
 app.include_router(form_response_router)
 app.include_router(form_response_field_router)
+app.include_router(form_analytics_router)
 
 
 @app.on_event("startup")

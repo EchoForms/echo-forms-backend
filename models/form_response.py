@@ -12,6 +12,7 @@ class FormResponse(Base):
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
     status = Column(String(32), nullable=False, default="in_progress")
     submitTimestamp = Column(TIMESTAMP, nullable=True)
+    language = Column(String(10), nullable=True, default="en")
 
     form = relationship("Form")
     user = relationship("User") 
