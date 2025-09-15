@@ -7,6 +7,11 @@
 
 # Frontend 
 1. npm run build 
-2. fix package-lock.json by reinstalling 
+
+2. fix package-lock.json by reinstalling -- 
+# Solution: Force regenerate
+rm pnpm-lock.yaml
+pnpm install
+
 3. add secrets 
 4. deploy latest commit 

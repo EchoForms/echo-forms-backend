@@ -115,7 +115,7 @@ def generate_categories(existing_categories: List[Dict], new_response_text: str)
                 {
                     "parts": [
                         {
-                            "text": f"""You are an AI assistant that categorizes form responses with SPECIFIC, DETAILED categories. {existing_context}
+                            "text": f"""You are an AI assistant that categorizes form responses with SPECIFIC categories. {existing_context}
 
 New response to categorize: "{new_response_text}"
 
@@ -126,7 +126,7 @@ Respond with a JSON object in this exact format:
     "assigned_to": ["Specific Category Name 1", "Specific Category Name 2"],
     "new_categories": [
         {{
-            "category_name": "Very Specific Category Name",
+            "category_name": "Specific Category Name",
             "summary_text": "Brief specific summary under 80 chars",
             "sentiment": "positive/negative/neutral"
         }}
@@ -143,11 +143,10 @@ Respond with a JSON object in this exact format:
 Rules:
 - Create SPECIFIC categories, not broad ones
 - If response mentions multiple issues, create separate categories for each
-- Only assign to existing categories if response EXACTLY matches that specific issue
 - Create new categories for new specific issues
 - Be granular: "Product Quality - Color Fading" not just "Product Quality"
 - Keep summary_text under 80 characters - be concise and specific
-- Do NOT calculate percentages - we'll handle that separately"""
+"""
                         }
                     ]
                 }
