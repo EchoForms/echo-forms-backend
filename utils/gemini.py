@@ -76,7 +76,12 @@ def transcribe_audio_file(audio_file_bytes: bytes, filename: str) -> Optional[st
                         logger.info(f"Successfully transcribed audio file with Gemini: {filename}")
                         return transcript
             
-            logger.error("Unexpected response format from Gemini API")
+            try:
+                import json as _json
+                raw_snippet = _json.dumps(result)[:2000]
+            except Exception:
+                raw_snippet = str(result)[:2000]
+            logger.error("Unexpected response format from Gemini API (transcription). Raw result (truncated): %s", raw_snippet)
             return None
         else:
             logger.error(f"Gemini API error: {response.status_code} - {response.text}")

@@ -46,7 +46,7 @@ Respond with only the sentiment word."""
             ],
             "generationConfig": {
                 "temperature": 0.1,
-                "maxOutputTokens": 10
+                "maxOutputTokens": 32
             }
         }
         
@@ -63,7 +63,11 @@ Respond with only the sentiment word."""
                         if sentiment in ["positive", "negative", "neutral"]:
                             return sentiment
             
-            logger.error("Unexpected response format from Gemini API for sentiment analysis")
+            try:
+                raw_snippet = json.dumps(result)[:2000]
+            except Exception:
+                raw_snippet = str(result)[:2000]
+            logger.error("Unexpected response format from Gemini API for sentiment analysis. Raw result (truncated): %s", raw_snippet)
             return "neutral"
         else:
             logger.error(f"Gemini API error for sentiment analysis: {response.status_code} - {response.text}")
@@ -153,7 +157,8 @@ Rules:
             ],
             "generationConfig": {
                 "temperature": 0.3,
-                "maxOutputTokens": 1000
+                "maxOutputTokens": 4096,
+                "responseMimeType": "application/json"
             }
         }
         
@@ -234,7 +239,11 @@ Rules:
                         except json.JSONDecodeError as e:
                             logger.error(f"Failed to parse JSON from Gemini response: {e}")
                             
-            logger.error("Unexpected response format from Gemini API for category generation")
+            try:
+                raw_snippet = json.dumps(result)[:2000]
+            except Exception:
+                raw_snippet = str(result)[:2000]
+            logger.error("Unexpected response format from Gemini API for category generation. Raw result (truncated): %s", raw_snippet)
             return {
                 'categories': existing_categories,
                 'assigned_to': [],

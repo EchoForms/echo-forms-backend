@@ -126,16 +126,7 @@ def analyze_sentiment(text: str) -> str:
             
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
         
-        prompt = f"""
-        Analyze the sentiment of the following text.
-        
-        Text: "{text}"
-        
-        Determine if the sentiment is positive, negative, or neutral.
-        
-        Respond with ONLY one word: "positive", "negative", or "neutral"
-        Do not add any other text or explanation.
-        """
+        prompt = f"Classify the sentiment of the following text. Text: \"{text}\""
         
         payload = {
             "contents": [{
@@ -144,8 +135,16 @@ def analyze_sentiment(text: str) -> str:
                 }]
             }],
             "generationConfig": {
-                "temperature": 0.1,
-                "maxOutputTokens": 10
+                "temperature": 0.0,
+                "maxOutputTokens": 128,
+                "responseMimeType": "application/json",
+                "responseSchema": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "sentiment": { "type": "STRING", "enum": ["positive","negative","neutral"] }
+                    },
+                    "required": ["sentiment"]
+                }
             }
         }
         
@@ -157,20 +156,54 @@ def analyze_sentiment(text: str) -> str:
         response.raise_for_status()
         
         result = response.json()
-        
-        if "candidates" in result and len(result["candidates"]) > 0:
-            content = result["candidates"][0]["content"]["parts"][0]["text"]
-            sentiment = content.strip().lower()
-            
-            if sentiment in ["positive", "negative", "neutral"]:
-                return sentiment
-            else:
-                print(f"Unexpected sentiment response: {sentiment}")
-                return "neutral"
-        else:
+        candidates = result.get("candidates") or []
+        if not candidates:
             print("No candidates in sentiment response")
             return "neutral"
-            
+        candidate = candidates[0] or {}
+        content = candidate.get("content") or {}
+        parts = content.get("parts") or []
+        text_val = None
+        if parts:
+            first = parts[0]
+            if isinstance(first, dict) and isinstance(first.get("text"), str):
+                text_val = first.get("text")
+        if not text_val and isinstance(candidate.get("text"), str):
+            text_val = candidate.get("text")
+        if not text_val and isinstance(candidate.get("output_text"), str):
+            text_val = candidate.get("output_text")
+        if not text_val:
+            try:
+                import json as _json
+                snippet = _json.dumps(result)[:2000]
+            except Exception:
+                snippet = str(result)[:2000]
+            print(f"Error in sentiment analysis: Unexpected response shape. Raw (truncated): {snippet}")
+            return "neutral"
+        # Parse JSON with optional quotes or code fences
+        raw = (text_val or "").strip()
+        if raw.startswith("```json"):
+            raw = raw[7:]
+        if raw.startswith("```"):
+            raw = raw[3:]
+        if raw.endswith("```"):
+            raw = raw[:-3]
+        raw = raw.strip()
+        import json as _json
+        try:
+            data = _json.loads(raw)
+            sentiment = (data.get("sentiment") or "").strip().lower()
+            if sentiment in ["positive","negative","neutral"]:
+                return sentiment
+        except Exception:
+            pass
+        # Fallback: treat raw text as direct label
+        fallback = raw.lower()
+        if fallback in ["positive","negative","neutral"]:
+            return fallback
+        print(f"Unexpected sentiment response: {raw}")
+        return "neutral"
+        
     except Exception as e:
         print(f"Error in sentiment analysis: {str(e)}")
         return "neutral"
@@ -228,7 +261,8 @@ def extract_categories_from_text(text: str) -> list:
             }],
             "generationConfig": {
                 "temperature": 0.3,
-                "maxOutputTokens": 1000
+                "maxOutputTokens": 4096,
+                "responseMimeType": "application/json"
             }
         }
         
@@ -240,45 +274,57 @@ def extract_categories_from_text(text: str) -> list:
         response.raise_for_status()
         
         result = response.json()
-        
-        if "candidates" in result and len(result["candidates"]) > 0:
-            content = result["candidates"][0]["content"]["parts"][0]["text"]
-            
-            # Parse the JSON response
-            try:
-                # Clean the response - remove markdown code blocks if present
-                cleaned_content = content.strip()
-                if cleaned_content.startswith("```json"):
-                    cleaned_content = cleaned_content[7:]  # Remove ```json
-                if cleaned_content.startswith("```"):
-                    cleaned_content = cleaned_content[3:]   # Remove ```
-                if cleaned_content.endswith("```"):
-                    cleaned_content = cleaned_content[:-3]  # Remove trailing ```
-                
-                cleaned_content = cleaned_content.strip()
-                print(f"Cleaned categories response: {cleaned_content}")
-                
-                categories = json.loads(cleaned_content)
-                if isinstance(categories, list):
-                    # Ensure proper UTF-8 encoding for all text fields
-                    for category in categories:
-                        if 'name' in category and isinstance(category['name'], str):
-                            category['name'] = category['name'].encode('utf-8').decode('utf-8')
-                        if 'keywords' in category and isinstance(category['keywords'], list):
-                            category['keywords'] = [
-                                keyword.encode('utf-8').decode('utf-8') 
-                                if isinstance(keyword, str) else keyword
-                                for keyword in category['keywords']
-                            ]
-                    return categories
-                else:
-                    return []
-            except json.JSONDecodeError as e:
-                print(f"Failed to parse categories response: {content}")
-                print(f"JSON decode error: {str(e)}")
-                return []
-        else:
+        candidates = result.get("candidates") or []
+        if not candidates:
             print("No candidates in categories response")
+            return []
+        candidate = candidates[0] or {}
+        content = candidate.get("content") or {}
+        parts = content.get("parts") or []
+        text_val = None
+        if parts:
+            first = parts[0]
+            if isinstance(first, dict) and isinstance(first.get("text"), str):
+                text_val = first.get("text")
+        if not text_val and isinstance(candidate.get("text"), str):
+            text_val = candidate.get("text")
+        if not text_val and isinstance(candidate.get("output_text"), str):
+            text_val = candidate.get("output_text")
+        if not text_val:
+            try:
+                import json as _json
+                snippet = _json.dumps(result)[:2000]
+            except Exception:
+                snippet = str(result)[:2000]
+            print(f"Error in category extraction: Unexpected response shape. Raw (truncated): {snippet}")
+            return []
+        # Parse the JSON response
+        try:
+            cleaned_content = text_val.strip()
+            if cleaned_content.startswith("```json"):
+                cleaned_content = cleaned_content[7:]
+            if cleaned_content.startswith("```"):
+                cleaned_content = cleaned_content[3:]
+            if cleaned_content.endswith("```"):
+                cleaned_content = cleaned_content[:-3]
+            cleaned_content = cleaned_content.strip()
+            print(f"Cleaned categories response: {cleaned_content}")
+            categories = json.loads(cleaned_content)
+            if isinstance(categories, list):
+                for category in categories:
+                    if 'name' in category and isinstance(category['name'], str):
+                        category['name'] = category['name'].encode('utf-8').decode('utf-8')
+                    if 'keywords' in category and isinstance(category['keywords'], list):
+                        category['keywords'] = [
+                            keyword.encode('utf-8').decode('utf-8')
+                            if isinstance(keyword, str) else keyword
+                            for keyword in category['keywords']
+                        ]
+                return categories
+            return []
+        except json.JSONDecodeError as e:
+            print(f"Failed to parse categories response: {text_val}")
+            print(f"JSON decode error: {str(e)}")
             return []
             
     except Exception as e:
