@@ -26,7 +26,7 @@ def detect_language_and_translate(text: str) -> Tuple[Optional[str], bool, str]:
             print("GEMINI_API_KEY not found")
             return None, False, "en"
             
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
         
         prompt = f"""
         Analyze the following text and determine if it's in English or another language.
@@ -124,7 +124,7 @@ def analyze_sentiment(text: str) -> str:
             print("GEMINI_API_KEY not found")
             return "neutral"
             
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
         
         prompt = f"""
         Analyze the sentiment of the following text.
@@ -194,7 +194,7 @@ def extract_categories_from_text(text: str) -> list:
             print("GEMINI_API_KEY not found")
             return []
             
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
         
         prompt = f"""
         Analyze the following text and extract relevant categories/topics.

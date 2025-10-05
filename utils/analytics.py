@@ -24,7 +24,7 @@ def analyze_sentiment(text: str) -> str:
             logger.error("GEMINI_API_KEY environment variable is not set")
             return "neutral"
         
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
         
         headers = {
             "Content-Type": "application/json"
@@ -97,7 +97,7 @@ def generate_categories(existing_categories: List[Dict], new_response_text: str)
                 'new_categories': []
             }
         
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
         
         headers = {
             "Content-Type": "application/json"

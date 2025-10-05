@@ -31,7 +31,7 @@ def transcribe_audio_file(audio_file_bytes: bytes, filename: str) -> Optional[st
         audio_base64 = base64.b64encode(audio_file_bytes).decode('utf-8')
         
         # Prepare the API request
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
         
         headers = {
             "Content-Type": "application/json"
